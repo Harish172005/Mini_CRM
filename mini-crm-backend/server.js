@@ -16,10 +16,25 @@ connectDB();
 const app = express();
 
 // ── Global Middleware ─────────────────────────────────────────────────────────
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "http://localhost:5173"
+];
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || "*",  // restrict in production
-  credentials: true,
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS blocked: " + origin));
+    }
+  },
+  credentials: true
 }));
+
+app.options("*", cors());
 app.use(express.json()); // parse JSON request bodies
 
 // ── Health check ──────────────────────────────────────────────────────────────
